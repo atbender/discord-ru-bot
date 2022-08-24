@@ -14,4 +14,4 @@ Supported commands:
 Usage example:
 
 
-```!ru-meal 26/08/2022 lunch```
+```!ru-meal lunch 26/08/2022```
