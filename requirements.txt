@@ -1,2 +1,4 @@
 discord.py==2.0.0
 python-dotenv==0.20.0
+requests==2.22.0
+temporal_cache==0.1.4
