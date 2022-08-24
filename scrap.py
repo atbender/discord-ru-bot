@@ -29,11 +29,12 @@ class Meal:
                 self.dishes[item["nome"]] = None
             self.dishes[item["nome"]] = item["descricao"]
 
-            lactose: List[str] = ["leite", "queijo"]
-            lactose_items: List[str] = [
-                ele for ele in lactose if ele in item["descricao"].lower()
-            ]
-            self.has_lactose = bool(lactose_items)
+            if not self.has_lactose:
+                lactose: List[str] = ["leite", "queijo"]
+                lactose_items: List[str] = [
+                    ele for ele in lactose if ele in item["descricao"].lower()
+                ]
+                self.has_lactose = bool(lactose_items)
 
         return self.dishes
 
@@ -43,7 +44,7 @@ class Meal:
 
         for item, description in self.dishes.items():
             txt += f"\t{item.lower()} \t ||{description.lower()}|| \n"
-        txt += "\n\n"
+        txt += "\n"
         if self.has_lactose:
             txt += "**Attention: **One or more items may contain lactose elements.\n\n"
 
