@@ -1,4 +1,5 @@
 import datetime
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import List
@@ -19,6 +20,15 @@ class Meal:
     dishes: dict
     has_lactose: bool
 
+    def check_lactose(self, description):
+        lactose: List[str] = ["leite,", "queijo,", "leite.", "queijo."]
+        lactose_items: List[str] = [
+            ele for ele in lactose if ele in description.lower()
+        ]
+        if not self.has_lactose:
+            self.has_lactose = bool(lactose_items)
+        return bool(lactose_items)
+
     def parse_meals(self, meal_json):
         self.dishes = {}
 
@@ -27,15 +37,10 @@ class Meal:
                 continue
             if item["nome"] not in self.dishes:
                 self.dishes[item["nome"]] = None
-            self.dishes[item["nome"]] = item["descricao"]
 
-            if not self.has_lactose:
-                lactose: List[str] = ["leite", "queijo"]
-                lactose_items: List[str] = [
-                    ele for ele in lactose if ele in item["descricao"].lower()
-                ]
-                self.has_lactose = bool(lactose_items)
-
+            self.dishes[item["nome"]] = item["descricao"], self.check_lactose(
+                item["descricao"]
+            )
         return self.dishes
 
     def format_meal(self) -> str:
@@ -43,7 +48,10 @@ class Meal:
         txt += f" --- {self.meal_day.day}/{self.meal_day.month}/{self.meal_day.year}\n"
 
         for item, description in self.dishes.items():
-            txt += f"\t{item.lower()} \t ||{description.lower()}|| \n"
+            if description[1]:
+                txt += f"**\t{item.lower()}** \t ||{description[0].lower()}|| \n"
+            else:
+                txt += f"\t{item.lower()} \t ||{description[0].lower()}|| \n"
         txt += "\n"
         if self.has_lactose:
             txt += "**Attention: **One or more items may contain lactose elements.\n\n"
@@ -52,6 +60,7 @@ class Meal:
 
 
 def get_query_string(date: str) -> str:
+    logging.warning(f"Cobalto was requested.")
     query = (
         f"https://cobalto.ufpel.edu.br/portal/cardapios/cardapioPublico/"
         f"listaCardapios?null&txtData={date}&cmbRestaurante=8&_search=false"
