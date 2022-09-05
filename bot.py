@@ -15,6 +15,9 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 timezone = pytz.timezone("Etc/GMT-3")
+os.system("mkdir logs")
+
+discord.VoiceClient.warn_nacl = False
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -131,7 +134,7 @@ async def on_command_error(ctx, error) -> None:
         embed = discord.Embed(
             title="Error!",
             description="Command not found.",
-            color=ctx.discord.Color.red(),
+            color=discord.Color.red(),
         )
         await ctx.send(embed=embed)
         return
