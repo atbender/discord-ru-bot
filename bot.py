@@ -13,7 +13,6 @@ import scrap
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
-# GUILD = os.getenv("DISCORD_GUILD")
 
 timezone = pytz.timezone("Etc/GMT-3")
 
@@ -25,7 +24,7 @@ logging.basicConfig(
 )
 
 
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.default())
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 
 @bot.event
@@ -33,54 +32,108 @@ async def on_ready() -> None:
     print(f"{bot.user.name} has connected to Discord!")
 
 
-def validate_meal(meal: Optional[str]) -> scrap.MealType:
-    if meal is None:
-        return scrap.MealType.LUNCH
-    if meal.lower not in ("lunch", "dinner"):
-        return scrap.MealType.LUNCH
-    return scrap.MealType.LUNCH if meal.lower() == "lunch" else scrap.MealType.DINNER
+def validate_meal(args) -> scrap.MealType:
+    if "dinner" in args:
+        return scrap.MealType.DINNER
+    return scrap.MealType.LUNCH
 
 
-def validate_day(day: Optional[str]) -> datetime.date:
+def has_digits(string):
+    return any(character.isdigit() for character in string)
+
+
+def check_number(args):
+    digits = [element for element in args if has_digits(element)]
+    if digits is None:
+        return None
+    if any(digits):
+        return digits[0]
+    return None
+
+
+def validate_day(args) -> datetime.date:
     datetime_timezone: datetime.datetime = datetime.datetime.now(timezone)
     today_date: datetime.date = datetime_timezone.today()
 
-    if day is None:
+    if args is None:
         return today_date
 
-    if day == "tomorrow":
-        return today_date + datetime.timedelta(days=1)
+    if "tomorrow" in args:
+        tomorrow_date = today_date + datetime.timedelta(days=1)
+        return tomorrow_date
 
-    return datetime.datetime.strptime(day, "%d/%m/%Y")
+    date = check_number(args)
+    if date is None:
+        return today_date
+
+    return datetime.datetime.strptime(date, "%d/%m/%Y")
+
+
+def log_command(ctx):
+    log_message: str = (
+        f"author:   {ctx.author}\t"
+        f"guild:    {ctx.guild}\t"
+        f"message:  {ctx.message.content}"
+    )
+    logging.info(log_message)
+
+
+def generate_embed(response):
+    embed = discord.Embed(
+        title="menu!", description=response, color=discord.Color.red()
+    )
+    return embed
+
+
+def handle_input(*args):
+    datetime_timezone: datetime.datetime = datetime.datetime.now(timezone)
+    today_date: datetime.date = datetime_timezone.today()
+
+    if args is None:
+        return today_date, scrap.MealType.LUNCH
+
+    args_lower = [element.lower() for element in args]
+    meal_type: scrap.MealType = validate_meal(args_lower)
+
+    day_formatted: datetime.date = validate_day(args_lower).date()  # type: ignore
+
+    return meal_type, day_formatted
+
+
+def is_input_correct(*args):
+    try:
+        input_formatted = handle_input(*args)
+    except ValueError:
+        return None
+    return input_formatted
 
 
 @bot.command(name="ru")
-async def get_ru_meal(ctx, day=None, meal=None):
+async def get_ru_meal(ctx, *args):
+    log_command(ctx)
 
-    logging.info(
-        f"author: {ctx.author}\t guild: {ctx.guild}\t message: {ctx.message.content}"
-    )
-
-    meal_type: scrap.MealType = validate_meal(meal)
-
-    try:
-        day_formatted: datetime.date = validate_day(day)
-    except ValueError:
+    input_formatted = is_input_correct(*args)
+    if input_formatted is None:
         response = "Incorrect data format, should be DD/MM/YYYY"
         await ctx.send(response)
         return
 
-    response = scrap.get_menus(day_formatted, meal_type)
-    await ctx.send(response)
+    response = scrap.get_menus(*input_formatted)
+
+    embed = generate_embed(response)
+
+    await ctx.send(embed=embed)
 
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx, error) -> None:
     if isinstance(error, CommandNotFound):
-        em = discord.Embed(
-            title=f"Error!!!", description=f"Command not found.", color=ctx.author.color
+        embed = discord.Embed(
+            title="Error!",
+            description="Command not found.",
+            color=ctx.discord.Color.red(),
         )
-        await ctx.send(embed=em)
+        await ctx.send(embed=embed)
         return
     raise error
 

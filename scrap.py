@@ -60,7 +60,7 @@ class Meal:
 
 
 def get_query_string(date: str) -> str:
-    logging.warning(f"Cobalto was requested.")
+
     query = (
         f"https://cobalto.ufpel.edu.br/portal/cardapios/cardapioPublico/"
         f"listaCardapios?null&txtData={date}&cmbRestaurante=8&_search=false"
@@ -70,7 +70,9 @@ def get_query_string(date: str) -> str:
 
 
 @interval(seconds=3600)
-def get_menus(meal_date: datetime.date, meal_type: MealType):
+def get_menus(meal_type: MealType, meal_date: datetime.date):
+    logging.warning("Cobalto was requested.")
+
     date_formatted: str = f"{meal_date.day}/{meal_date.month}/{meal_date.year}"
 
     query_string: str = get_query_string(date_formatted)
