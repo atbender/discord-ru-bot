@@ -3,12 +3,12 @@ import logging
 import os
 from typing import Optional
 
+import discord
 import pytz
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 from dotenv import load_dotenv
 
-import discord
 import scrap
 
 load_dotenv()
@@ -75,6 +75,7 @@ def log_command(ctx):
         f"guild:    {ctx.guild}\t"
         f"message:  {ctx.message.content}"
     )
+    print(log_message)
     logging.info(log_message)
 
 

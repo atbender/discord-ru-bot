@@ -2,4 +2,5 @@
 .git
 __pycache__
 discord/
+discord-environment/
 logs/
