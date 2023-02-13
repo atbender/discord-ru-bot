@@ -21,7 +21,7 @@ class Meal:
     has_lactose: bool
 
     def check_lactose(self, description):
-        lactose: List[str] = ["leite,", "queijo,", "leite.", "queijo."]
+        lactose: List[str] = ["leite,", "leite.", "queijo"]
         lactose_items: List[str] = [
             ele for ele in lactose if ele in description.lower()
         ]
@@ -59,29 +59,26 @@ class Meal:
         return txt
 
 
-def get_query_string(date: str) -> str:
-
-    query = (
-        f"https://cobalto.ufpel.edu.br/portal/cardapios/cardapioPublico/"
-        f"listaCardapios?null&txtData={date}&cmbRestaurante=8&_search=false"
-        f"&nd=1656779148361&rows=20&page=1&sidx=refeicao+asc%2C+id&sord=asc"
-    )
+def get_query_string(date: str, restaurant) -> str:
+    query = f"https://cobalto.ufpel.edu.br/portal/cardapios/cardapioPublico/listaCardapios?null&txtData={date}&cmbRestaurante={restaurant}&_search=false&nd=1676208086850&rows=20&page=1&sidx=refeicao+asc%2C+id&sord=asc"
     return query
 
 
 @interval(seconds=3600)
-def get_menus(meal_type: MealType, meal_date: datetime.date):
+def get_menus(meal_type: MealType, meal_date: datetime.date, restaurant):
     logging.warning("Cobalto was requested.")
 
     date_formatted: str = f"{meal_date.day}/{meal_date.month}/{meal_date.year}"
 
-    query_string: str = get_query_string(date_formatted)
-    meal_json = requests.get(query_string).json()
+    query_string: str = get_query_string(date_formatted, restaurant)
+    # print("Cobalto was requestedd.")
+    meal_json = requests.get(query_string, timeout=3).json()
 
+    # print("Request received.")
     message: str
 
     if "rows" not in meal_json:
-        message = "No meals listed today."
+        message = "No meals listed."
         return message
 
     new_meal: Meal = Meal(meal_type, meal_date, {}, False)

@@ -3,18 +3,18 @@ import logging
 import os
 from typing import Optional
 
-import discord
 import pytz
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 from dotenv import load_dotenv
 
+import discord
 import scrap
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-timezone = pytz.timezone("Etc/GMT-3")
+timezone = pytz.timezone("Brazil/East")
 os.system("mkdir logs")
 
 discord.VoiceClient.warn_nacl = False
@@ -41,6 +41,14 @@ def validate_meal(args) -> scrap.MealType:
     return scrap.MealType.LUNCH
 
 
+def validate_restaurant(args):
+    santa_cruz = ("sc", "santa", "cruz", "centro")
+    if any(variation in args for variation in santa_cruz):
+        # if "sc" in args:
+        return 6  # code for restaurant santa cruz
+    return 8  # code for restaurant anglo (also default)
+
+
 def has_digits(string):
     return any(character.isdigit() for character in string)
 
@@ -57,6 +65,7 @@ def check_number(args):
 def validate_day(args) -> datetime.date:
     datetime_timezone: datetime.datetime = datetime.datetime.now(timezone)
     today_date: datetime.date = datetime_timezone.today()
+    # datetime(now.year, now.month, now.day, tzinfo=utc) # Midnight
 
     if args is None:
         return today_date
@@ -75,16 +84,19 @@ def validate_day(args) -> datetime.date:
 def log_command(ctx):
     log_message: str = (
         f"author:   {ctx.author}\t"
-        f"guild:    {ctx.guild}\t"
+        f"guild:    {ctx.guild}\t"  
         f"message:  {ctx.message.content}"
     )
     print(log_message)
     logging.info(log_message)
 
 
-def generate_embed(response):
+def generate_embed(response, meal, day, restaurant):
+    if restaurant ==
+    embed_title = f"Menu listed for {meal.value} in restaurant {restaurant} on day {day}"
+    # embed_title = "menu!"
     embed = discord.Embed(
-        title="menu!", description=response, color=discord.Color.red()
+        title=embed_title, description=response, color=discord.Color.red()
     )
     return embed
 
@@ -94,14 +106,16 @@ def handle_input(*args):
     today_date: datetime.date = datetime_timezone.today()
 
     if args is None:
-        return today_date, scrap.MealType.LUNCH
+        return today_date, scrap.MealType.LUNCH, 8
 
     args_lower = [element.lower() for element in args]
     meal_type: scrap.MealType = validate_meal(args_lower)
 
     day_formatted: datetime.date = validate_day(args_lower).date()  # type: ignore
 
-    return meal_type, day_formatted
+    restaurant = validate_restaurant(args_lower)
+
+    return meal_type, day_formatted, restaurant
 
 
 def is_input_correct(*args):
@@ -121,10 +135,11 @@ async def get_ru_meal(ctx, *args):
         response = "Incorrect data format, should be DD/MM/YYYY"
         await ctx.send(response)
         return
-
+    meal, day, restaurant = input_formatted
+    # print("getting menus")
     response = scrap.get_menus(*input_formatted)
 
-    embed = generate_embed(response)
+    embed = generate_embed(response, meal, day, restaurant)
 
     await ctx.send(embed=embed)
 
