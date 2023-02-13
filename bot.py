@@ -45,8 +45,8 @@ def validate_restaurant(args):
     santa_cruz = ("sc", "santa", "cruz", "centro")
     if any(variation in args for variation in santa_cruz):
         # if "sc" in args:
-        return 6  # code for restaurant santa cruz
-    return 8  # code for restaurant anglo (also default)
+        return scrap.Restaurant.SANTA_CRUZ # code for restaurant santa cruz
+    return scrap.Restaurant.ANGLO  # code for restaurant anglo (also default)
 
 
 def has_digits(string):
@@ -92,8 +92,8 @@ def log_command(ctx):
 
 
 def generate_embed(response, meal, day, restaurant):
-    if restaurant ==
-    embed_title = f"Menu listed for {meal.value} in restaurant {restaurant} on day {day}"
+    #if restaurant ==
+    embed_title = f"Menu listed for {meal.name} in restaurant {restaurant.name} on day {day}"
     # embed_title = "menu!"
     embed = discord.Embed(
         title=embed_title, description=response, color=discord.Color.red()

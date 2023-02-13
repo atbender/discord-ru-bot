@@ -12,6 +12,10 @@ class MealType(Enum):
     LUNCH = "ALMOÇO"
     DINNER = "JANTA"
 
+class Restaurant(Enum):
+    ANGLO = 8
+    SANTA_CRUZ = 6
+
 
 @dataclass
 class Meal:
@@ -60,7 +64,7 @@ class Meal:
 
 
 def get_query_string(date: str, restaurant) -> str:
-    query = f"https://cobalto.ufpel.edu.br/portal/cardapios/cardapioPublico/listaCardapios?null&txtData={date}&cmbRestaurante={restaurant}&_search=false&nd=1676208086850&rows=20&page=1&sidx=refeicao+asc%2C+id&sord=asc"
+    query = f"https://cobalto.ufpel.edu.br/portal/cardapios/cardapioPublico/listaCardapios?null&txtData={date}&cmbRestaurante={restaurant.value}&_search=false&nd=1676208086850&rows=20&page=1&sidx=refeicao+asc%2C+id&sord=asc"
     return query
 
 
